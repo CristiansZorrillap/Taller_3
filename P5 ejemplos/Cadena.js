@@ -1,48 +1,59 @@
-let theta;
+let s1, s2, s3, s4,s5;
+let gravity = 2;
+let mass = 0.9;
 
 function setup() {
-  createCanvas(710, 800);
+  createCanvas(720, 500);
+  fill(980, 126);
+  // Inputs: x, y, mass, gravity
+  s1 = new Spring2D(0.0, width / 2, mass, gravity);
+  s2 = new Spring2D(0.0, width / 2, mass, gravity);
+  s3 = new Spring2D(0.0, width / 2, mass, gravity);
+  s4 = new Spring2D(0.0, width / 2, mass, gravity);
+  s5 = new Spring2D(0.0, width / 2, mass, gravity);
 }
 
 function draw() {
   background(0);
-  frameRate(30);
-  stroke(255);
-  // Let's pick an angle 0 to 90 degrees based on the mouse position
-  let a = (mouseX / width) * 120;
-  // Convert it to radians
-  theta = radians(a);
-  // Start the tree from the bottom of the screen
-  translate(width/2,height);
-  // Draw a line 120 pixels
-  line(0,0,0,-400);
-  // Move to the end of that line
-  translate(0,-400);
-  // Start the recursive branching!
-  branch(180);
-
+  s1.update(mouseX, mouseY);
+  s1.display(mouseX, mouseY);
+  s2.update(s1.x, s1.y);
+  s2.display(s1.x, s1.y);
+   s3.update(s1.x, s1.y);
+  s3.display(s1.x, s1.y);
+   s4.update(s1.x, s1.y);
+  s4.display(s1.x, s1.y);
+   s5.update(s1.x, s1.y);
+  s5.display(s1.x, s1.y);
 }
 
-function branch(h) {
-  // Each branch will be 2/3rds the size of the previous one
-  h *= 0.66;
+function Spring2D(xpos, ypos, m, g) {
+  this.x = xpos;// The x- and y-coordinates
+  this.y = ypos;
+  this.vx = 5; // The x- and y-axis velocities
+  this.vy = 5;
+  this.mass = m;
+  this.gravity = g;
+  this.radius = 60;
+  this.stiffness = 0.1;
+  this.damping = 0.7;
 
-  // All recursive functions must have an exit condition!!!!
-  // Here, ours is when the length of the branch is 2 pixels or less
-  if (h > 2) {
-    push();    // Save the current state of transformation (i.e. where are we now)
-    rotate(theta);   // Rotate by theta
-    line(0, 0, 0, -h);  // Draw the branch
-    translate(0, -h); // Move to the end of the branch
-    branch(h);       // Ok, now call myself to draw two new branches!!
-    pop();     // Whenever we get back here, we "pop" in order to restore the previous matrix state
+  this.update = function(targetX, targetY) {
+    let forceX = (targetX - this.x) * this.stiffness;
+    let ax = forceX / this.mass;
+    this.vx = this.damping * (this.vx + ax);
+    this.x += this.vx;
+    let forceY = (targetY - this.y) * this.stiffness;
+    forceY += this.gravity;
+    let ay = forceY / this.mass;
+    this.vy = this.damping * (this.vy + ay);
+    this.y += this.vy;
+  }
 
-    // Repeat the same thing, only branch off to the "left" this time!
-    push();
-    rotate(-theta);
-    line(0, 0, 0, -h);
-    translate(0, -h);
-    branch(h);
-    pop();
+  this.display = function(nx, ny) {
+    noStroke();
+    rect(this.x, this.y, this.radius * 2, this.radius * 2);
+    stroke(800);
+    line(this.x, this.y, nx, ny);
   }
 }
